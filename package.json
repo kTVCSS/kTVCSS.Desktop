@@ -30,7 +30,8 @@
     "publish": {
       "provider": "github",
       "owner": "kTVCSS",
-      "repo": "kTVCSS.Desktop"
+      "repo": "kTVCSS.Desktop",
+      "releaseType": "release"
     },
     "files": [
       "main.js",

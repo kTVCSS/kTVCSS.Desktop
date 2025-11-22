@@ -479,10 +479,16 @@ if (!app.isPackaged) {
   autoUpdater.autoInstallOnAppQuit = true;
   
   // Автообновлятор автоматически использует настройки из package.json (GitHub Releases)
+  // Логируем текущую версию для отладки
+  console.log('[AutoUpdater] Текущая версия приложения:', app.getVersion());
+  console.log('[AutoUpdater] Репозиторий:', 'kTVCSS/kTVCSS.Desktop');
   
   // Проверка обновлений при запуске (с задержкой 5 секунд)
   setTimeout(() => {
-    autoUpdater.checkForUpdatesAndNotify();
+    console.log('[AutoUpdater] Запуск проверки обновлений...');
+    autoUpdater.checkForUpdatesAndNotify().catch(err => {
+      console.error('[AutoUpdater] Ошибка при проверке обновлений:', err);
+    });
   }, 5000);
   
   // Проверка обновлений каждые 4 часа
@@ -490,30 +496,34 @@ if (!app.isPackaged) {
     autoUpdater.checkForUpdatesAndNotify();
   }, 4 * 60 * 60 * 1000);
   
-  // События автообновлятора
+  // События автообновлятора с логированием для отладки
   autoUpdater.on('checking-for-update', () => {
-    // Проверка обновлений началась
+    console.log('[AutoUpdater] Проверка обновлений...');
   });
   
   autoUpdater.on('update-available', (info) => {
-    // Обновление доступно, начнется автоматическая загрузка
+    console.log('[AutoUpdater] Обновление доступно:', info.version);
+    console.log('[AutoUpdater] Текущая версия:', app.getVersion());
   });
   
   autoUpdater.on('update-not-available', (info) => {
-    // Обновлений нет
+    console.log('[AutoUpdater] Обновлений нет. Текущая версия:', app.getVersion());
+    console.log('[AutoUpdater] Последняя версия на сервере:', info.version);
   });
   
   autoUpdater.on('error', (err) => {
-    // Ошибка при проверке обновлений (игнорируем в продакшене)
+    console.error('[AutoUpdater] Ошибка:', err.message);
+    console.error('[AutoUpdater] Детали:', err);
   });
   
   autoUpdater.on('download-progress', (progressObj) => {
-    // Прогресс загрузки обновления
+    const percent = Math.round(progressObj.percent);
+    console.log(`[AutoUpdater] Загрузка: ${percent}%`);
   });
   
   autoUpdater.on('update-downloaded', (info) => {
-    // Обновление загружено, установится при следующем запуске
-    // или можно установить сразу: autoUpdater.quitAndInstall(false, true);
+    console.log('[AutoUpdater] Обновление загружено:', info.version);
+    console.log('[AutoUpdater] Установится при следующем запуске');
   });
 }
 
