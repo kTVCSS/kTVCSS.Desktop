@@ -1,6 +1,6 @@
 {
   "name": "ktvcss",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "kTVCSS Desktop Application",
   "main": "main.js",
   "scripts": {
