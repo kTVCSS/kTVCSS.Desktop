@@ -1,0 +1,60 @@
+{
+  "name": "ktvcss",
+  "version": "1.0.0",
+  "description": "kTVCSS Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win"
+  },
+  "keywords": [
+    "ktvcss",
+    "desktop"
+  ],
+  "author": "kTVCSS",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^39.2.3",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
+  },
+  "build": {
+    "appId": "com.ktvcss.app",
+    "productName": "kTVCSS",
+    "directories": {
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "generic",
+      "url": ""
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "icon.png"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "kTVCSS",
+      "perMachine": true,
+      "include": "installer.nsh"
+    }
+  }
+}
