@@ -49,6 +49,9 @@ function createWindow() {
     mainWindow = null;
   });
 
+  // Настройка автообновлятора после создания окна
+  setupAutoUpdater();
+
   // Включаем автозагрузку медиа (для звуков) и перехватываем уведомления
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.executeJavaScript(`
@@ -468,62 +471,93 @@ ipcMain.handle('request-notification-permission', async () => {
   return 'denied';
 });
 
+// Функция для отправки логов в renderer process (чтобы видеть их в DevTools)
+function logToRenderer(message, type = 'log') {
+  if (mainWindow && mainWindow.webContents) {
+    const escapedMessage = message.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+    mainWindow.webContents.executeJavaScript(`
+      console.${type}('[AutoUpdater] ${escapedMessage}');
+    `).catch(() => {});
+  }
+  // Также выводим в консоль main process
+  if (type === 'error') {
+    console.error('[AutoUpdater]', message);
+  } else {
+    console.log('[AutoUpdater]', message);
+  }
+}
+
 // Настройка автообновлятора через GitHub Releases
-// Автообновлятор настроен на использование GitHub Releases из репозитория kTVCSS/kTVCSS.Desktop
-if (!app.isPackaged) {
-  // В режиме разработки отключаем автообновлятор
-  autoUpdater.autoDownload = false;
-} else {
+function setupAutoUpdater() {
+  if (!app.isPackaged) {
+    // В режиме разработки отключаем автообновлятор
+    autoUpdater.autoDownload = false;
+    logToRenderer('Режим разработки - автообновлятор отключен');
+    logToRenderer('Для тестирования автообновлений используйте собранное приложение');
+    return;
+  }
+  
   // В продакшене включаем автообновлятор
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   
   // Автообновлятор автоматически использует настройки из package.json (GitHub Releases)
-  // Логируем текущую версию для отладки
-  console.log('[AutoUpdater] Текущая версия приложения:', app.getVersion());
-  console.log('[AutoUpdater] Репозиторий:', 'kTVCSS/kTVCSS.Desktop');
+  const currentVersion = app.getVersion();
+  logToRenderer(`Текущая версия приложения: ${currentVersion}`);
+  logToRenderer('Репозиторий: kTVCSS/kTVCSS.Desktop');
+  logToRenderer('Приложение упаковано - автообновлятор включен');
   
   // Проверка обновлений при запуске (с задержкой 5 секунд)
   setTimeout(() => {
-    console.log('[AutoUpdater] Запуск проверки обновлений...');
+    logToRenderer('Запуск проверки обновлений...');
     autoUpdater.checkForUpdatesAndNotify().catch(err => {
-      console.error('[AutoUpdater] Ошибка при проверке обновлений:', err);
+      logToRenderer(`Ошибка при проверке обновлений: ${err.message}`, 'error');
+      if (err.stack) {
+        logToRenderer(`Stack: ${err.stack}`, 'error');
+      }
     });
   }, 5000);
   
   // Проверка обновлений каждые 4 часа
   setInterval(() => {
-    autoUpdater.checkForUpdatesAndNotify();
+    logToRenderer('Периодическая проверка обновлений...');
+    autoUpdater.checkForUpdatesAndNotify().catch(err => {
+      logToRenderer(`Ошибка при периодической проверке: ${err.message}`, 'error');
+    });
   }, 4 * 60 * 60 * 1000);
   
   // События автообновлятора с логированием для отладки
   autoUpdater.on('checking-for-update', () => {
-    console.log('[AutoUpdater] Проверка обновлений...');
+    logToRenderer('Проверка обновлений...');
   });
   
   autoUpdater.on('update-available', (info) => {
-    console.log('[AutoUpdater] Обновление доступно:', info.version);
-    console.log('[AutoUpdater] Текущая версия:', app.getVersion());
+    logToRenderer(`Обновление доступно: ${info.version}`);
+    logToRenderer(`Текущая версия: ${currentVersion}`);
   });
   
   autoUpdater.on('update-not-available', (info) => {
-    console.log('[AutoUpdater] Обновлений нет. Текущая версия:', app.getVersion());
-    console.log('[AutoUpdater] Последняя версия на сервере:', info.version);
+    logToRenderer(`Обновлений нет. Текущая версия: ${currentVersion}`);
+    if (info && info.version) {
+      logToRenderer(`Последняя версия на сервере: ${info.version}`);
+    }
   });
   
   autoUpdater.on('error', (err) => {
-    console.error('[AutoUpdater] Ошибка:', err.message);
-    console.error('[AutoUpdater] Детали:', err);
+    logToRenderer(`Ошибка: ${err.message}`, 'error');
+    if (err.stack) {
+      logToRenderer(`Stack: ${err.stack}`, 'error');
+    }
   });
   
   autoUpdater.on('download-progress', (progressObj) => {
     const percent = Math.round(progressObj.percent);
-    console.log(`[AutoUpdater] Загрузка: ${percent}%`);
+    logToRenderer(`Загрузка: ${percent}% (${progressObj.transferred}/${progressObj.total} байт)`);
   });
   
   autoUpdater.on('update-downloaded', (info) => {
-    console.log('[AutoUpdater] Обновление загружено:', info.version);
-    console.log('[AutoUpdater] Установится при следующем запуске');
+    logToRenderer(`Обновление загружено: ${info.version}`);
+    logToRenderer('Установится при следующем запуске');
   });
 }
 
