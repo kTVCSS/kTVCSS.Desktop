@@ -468,9 +468,8 @@ ipcMain.handle('request-notification-permission', async () => {
   return 'denied';
 });
 
-// Настройка автообновлятора
-// Для работы автообновлятора нужно настроить сервер обновлений
-// Можно использовать GitHub Releases, собственный сервер или generic provider
+// Настройка автообновлятора через GitHub Releases
+// Автообновлятор настроен на использование GitHub Releases из репозитория kTVCSS/kTVCSS.Desktop
 if (!app.isPackaged) {
   // В режиме разработки отключаем автообновлятор
   autoUpdater.autoDownload = false;
@@ -479,11 +478,7 @@ if (!app.isPackaged) {
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   
-  // Настройка сервера обновлений (если нужен свой сервер, раскомментируйте и укажите URL)
-  // autoUpdater.setFeedURL({
-  //   provider: 'generic',
-  //   url: 'https://your-update-server.com/updates'
-  // });
+  // Автообновлятор автоматически использует настройки из package.json (GitHub Releases)
   
   // Проверка обновлений при запуске (с задержкой 5 секунд)
   setTimeout(() => {

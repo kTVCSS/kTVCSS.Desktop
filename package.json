@@ -28,8 +28,9 @@
       "output": "dist"
     },
     "publish": {
-      "provider": "generic",
-      "url": ""
+      "provider": "github",
+      "owner": "kTVCSS",
+      "repo": "kTVCSS.Desktop"
     },
     "files": [
       "main.js",
